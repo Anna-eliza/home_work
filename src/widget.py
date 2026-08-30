@@ -1,4 +1,5 @@
-from src.masks import get_mask_card_number, get_mask_account
+from src.masks import get_mask_account, get_mask_card_number
+
 
 def mask_account_card(input_string: str) -> str:
     """Маскирует номер карты или счета, в зависимости от типа"""
@@ -19,8 +20,9 @@ def mask_account_card(input_string: str) -> str:
         masked_number = get_mask_card_number(card_number)
         return f"{card_name} {masked_number}"
 
+
 def get_date(date_string: str) -> str:
-    """ сокращает формат даты на банковской карте"""
-    date_part = date_string.split('T')[0]
-    year, month, day = date_part.split('-')
+    """сокращает формат даты на банковской карте"""
+    date_part = date_string.split("T")[0]
+    year, month, day = date_part.split("-")
     return f"{day}.{month}.{year}"
