@@ -1,4 +1,5 @@
 from src.masks import get_mask_account, get_mask_card_number
+
 card_number = "7000792289606361"
 masked_card = get_mask_card_number(card_number)
 print(f"Номер карты: {card_number}")
