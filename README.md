@@ -23,3 +23,18 @@ pip install -r requirements.txt
 2. Создайте новую учетную запись или войдите существующей.
 3. Создайте новую запись в блоге или оставьте комментарий к существующей.
 
+##  Тесты
+
+```bash
+# установить зависимости
+pip install pytest pytest-cov
+
+# запустить тесты
+pytest
+
+# запустить с покрытием (HTML-отчёт в htmlcov/)
+pytest --cov=src --cov-report=html
+```
+
+Тесты лежат в `tests/`, фикстуры — в `tests/conftest.py`.
+Покрытие: `src/masks.py`, `src/processing.py`, `src/widget.py`.
