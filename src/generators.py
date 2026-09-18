@@ -1,11 +1,9 @@
 def filter_by_currency(transactions, currency):
-    """ Фильтрует транзакции по заданной валюте. """
+    """Фильтрует транзакции по заданной валюте."""
     return (
         transaction
         for transaction in transactions
-        if transaction.get("operationAmount", {})
-           .get("currency", {})
-           .get("code") == currency
+        if transaction.get("operationAmount", {}).get("currency", {}).get("code") == currency
     )
 
 

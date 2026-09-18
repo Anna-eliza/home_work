@@ -1,5 +1,7 @@
 import pytest
-from src.generators import filter_by_currency, transaction_descriptions, card_number_generator
+
+from src.generators import card_number_generator, filter_by_currency, transaction_descriptions
+
 
 def test_filter_by_currency_returns_iterator(transactions):
     result = filter_by_currency(transactions, "USD")
@@ -11,9 +13,7 @@ def test_filter_by_currency_usd(transactions):
     result = list(filter_by_currency(transactions, "USD"))
     assert len(result) == 3
     assert [t["id"] for t in result] == [939719570, 142264268, 895315941]
-    assert all(
-        t["operationAmount"]["currency"]["code"] == "USD" for t in result
-    )
+    assert all(t["operationAmount"]["currency"]["code"] == "USD" for t in result)
 
 
 def test_filter_by_currency_rub(transactions):
@@ -76,30 +76,46 @@ def test_transaction_descriptions_empty_list_stop_iteration():
 @pytest.mark.parametrize(
     ("start", "end", "expected"),
     [
-        (1, 5, [
-            "0000 0000 0000 0001",
-            "0000 0000 0000 0002",
-            "0000 0000 0000 0003",
-            "0000 0000 0000 0004",
-            "0000 0000 0000 0005",
-        ]),
+        (
+            1,
+            5,
+            [
+                "0000 0000 0000 0001",
+                "0000 0000 0000 0002",
+                "0000 0000 0000 0003",
+                "0000 0000 0000 0004",
+                "0000 0000 0000 0005",
+            ],
+        ),
         (1, 1, ["0000 0000 0000 0001"]),
-        (10, 11, [
-            "0000 0000 0000 0010",
-            "0000 0000 0000 0011",
-        ]),
-        (9998, 10001, [
-            "0000 0000 0000 9998",
-            "0000 0000 0000 9999",
-            "0000 0000 0001 0000",
-            "0000 0000 0001 0001",
-        ]),
+        (
+            10,
+            11,
+            [
+                "0000 0000 0000 0010",
+                "0000 0000 0000 0011",
+            ],
+        ),
+        (
+            9998,
+            10001,
+            [
+                "0000 0000 0000 9998",
+                "0000 0000 0000 9999",
+                "0000 0000 0001 0000",
+                "0000 0000 0001 0001",
+            ],
+        ),
         (9999_9999_9999_9999, 9999_9999_9999_9999, ["9999 9999 9999 9999"]),
-        (9999_9999_9999_9997, 9999_9999_9999_9999, [
-            "9999 9999 9999 9997",
-            "9999 9999 9999 9998",
-            "9999 9999 9999 9999",
-        ]),
+        (
+            9999_9999_9999_9997,
+            9999_9999_9999_9999,
+            [
+                "9999 9999 9999 9997",
+                "9999 9999 9999 9998",
+                "9999 9999 9999 9999",
+            ],
+        ),
         (5, 1, []),
     ],
     ids=[
@@ -116,21 +132,18 @@ def test_card_number_generator_range(transactions, start, end, expected):
     assert list(card_number_generator(start, end)) == expected
 
 
-@pytest.mark.parametrize("number", [
-    1,
-    42,
-    1000,
-    1234_5678_9012_3456,
-    9999_9999_9999_9999,
-])
+@pytest.mark.parametrize(
+    "number",
+    [
+        1,
+        42,
+        1000,
+        1234_5678_9012_3456,
+        9999_9999_9999_9999,
+    ],
+)
 def test_card_number_generator_space_positions(transactions, number):
     card = next(card_number_generator(number, number))
     assert card[4] == " "
     assert card[9] == " "
     assert card[14] == " "
-
-
-
-
-
-
