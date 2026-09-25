@@ -16,10 +16,7 @@ def log(filename=None):
             write_log(f"Начало выполнения функции {func.__name__}")
             try:
                 result = func(*args, **kwargs)
-                write_log(
-                    f"Функция {func.__name__} выполнилась успешно. "
-                    f"Результат: {result}"
-                )
+                write_log(f"Функция {func.__name__} выполнилась успешно. " f"Результат: {result}")
                 return result
             except Exception as e:
                 write_log(
@@ -35,7 +32,9 @@ def log(filename=None):
 
     return decorator
 
+
 if __name__ == "__main__":
+
     @log(filename="mylog.txt")
     def my_function(x, y):
         return x + y

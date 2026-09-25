@@ -59,12 +59,14 @@ def operations_only_executed():
         {"id": 2, "state": "EXECUTED", "date": "2024-01-10"},
     ]
 
+
 @pytest.fixture
 def operations_without_state_key():
     return [
         {"id": 1, "date": "2024-03-15"},
         {"id": 2, "state": "EXECUTED", "date": "2024-01-10"},
     ]
+
 
 @pytest.fixture
 def operations_with_same_dates():
@@ -137,8 +139,3 @@ def iso_date_only():
 @pytest.fixture
 def iso_datetime_no_microseconds():
     return "2024-03-15T10:30:00"
-
-
-
-
-
