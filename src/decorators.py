@@ -40,3 +40,4 @@ if __name__ == "__main__":
         return x + y
 
     my_function(1, 2)
+
