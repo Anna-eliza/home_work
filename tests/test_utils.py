@@ -4,7 +4,6 @@ import tempfile
 
 from src.utils import load_operations
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PATH = os.path.join(BASE_DIR, "data", "operations.json")
 
@@ -40,7 +39,7 @@ def test_not_a_list():
 
 def test_broken_json():
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
-        f.write("{invalid json")   # ← латиница!
+        f.write("{invalid json")  # ← латиница!
         path = f.name
     try:
         assert load_operations(path) == []

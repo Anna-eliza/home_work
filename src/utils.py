@@ -1,5 +1,6 @@
 import json
 
+
 def load_operations(path):
     """Загружает список транзакций из JSON-файла.
 
