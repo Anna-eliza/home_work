@@ -1,10 +1,10 @@
-2026-10-05 14:41:23 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
-2026-10-05 14:41:23 | utils | INFO | Успешно загружено 101 транзакций из C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
-2026-10-05 14:41:23 | utils | DEBUG | Попытка загрузки транзакций из файла: data/nope.json
-2026-10-05 14:41:23 | utils | ERROR | Файл не найден: data/nope.json
-2026-10-05 14:41:23 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmp0fxba2zh.json
-2026-10-05 14:41:23 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmp0fxba2zh.json: Expecting value: line 1 column 1 (char 0)
-2026-10-05 14:41:23 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmp4ospm076.json
-2026-10-05 14:41:23 | utils | ERROR | Ожидался список транзакций в C:\Users\anna_\AppData\Local\Temp\tmp4ospm076.json, получено: dict
-2026-10-05 14:41:23 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpqp32ojev.json
-2026-10-05 14:41:23 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmpqp32ojev.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-10-07 16:06:31 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
+2026-10-07 16:06:31 | utils | INFO | Успешно загружено 101 транзакций из C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
+2026-10-07 16:06:31 | utils | DEBUG | Попытка загрузки транзакций из файла: data/nope.json
+2026-10-07 16:06:31 | utils | ERROR | Файл не найден: data/nope.json
+2026-10-07 16:06:31 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpny0ybbr1.json
+2026-10-07 16:06:31 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmpny0ybbr1.json: Expecting value: line 1 column 1 (char 0)
+2026-10-07 16:06:31 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmp8tgwn4_t.json
+2026-10-07 16:06:31 | utils | ERROR | Ожидался список транзакций в C:\Users\anna_\AppData\Local\Temp\tmp8tgwn4_t.json, получено: dict
+2026-10-07 16:06:31 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmplbnksyiq.json
+2026-10-07 16:06:31 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmplbnksyiq.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)

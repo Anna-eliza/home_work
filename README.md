@@ -22,7 +22,8 @@
 
 Проект представляет собой набор модулей для обработки банковских транзакций:
 маскирование карт и счетов, фильтрация и сортировка операций, генерация
-описаний, логирование вызовов, загрузка данных из JSON и конвертация валют.
+описаний, логирование вызовов, загрузка данных из JSON, CSV и XLSX,
+конвертация валют.
 
 Примеры использования каждого модуля смотрите в соответствующих разделах ниже.
 
@@ -91,6 +92,86 @@
 - `src/utils.py` — функция загрузки
 - `data/operations.json` — файл с данными
 - `tests/test_utils.py` — тесты
+
+## Модуль `file_readers`
+
+Модуль `src/file_readers.py` содержит функции для считывания финансовых
+операций из файлов CSV и XLSX. Все функции возвращают **список словарей**,
+ключи которых соответствуют заголовкам столбцов исходного файла.
+
+### Функции
+
+#### `read_transactions_from_csv(file_path)`
+
+Считывает финансовые операции из CSV-файла.
+
+- **Аргумент:** `file_path` — путь к CSV-файлу (строка или `pathlib.Path`).
+- **Возвращает:** `list[dict]` — список словарей с транзакциями.
+- **Исключения:** `FileNotFoundError` — если файл по указанному пути не найден.
+
+**Пример:**
+
+```python
+from src.file_readers import read_transactions_from_csv
+
+transactions = read_transactions_from_csv("data/transactions.csv")
+print(f"Загружено {len(transactions)} транзакций")
+print(transactions[0])
+```
+
+#### `read_transactions_from_excel(file_path)`
+
+Считывает финансовые операции из Excel-файла (`.xlsx`).
+
+- **Аргумент:** `file_path` — путь к XLSX-файлу (строка или `pathlib.Path`).
+- **Возвращает:** `list[dict]` — список словарей с транзакциями.
+- **Исключения:** `FileNotFoundError` — если файл по указанному пути не найден.
+
+**Пример:**
+
+```python
+from src.file_readers import read_transactions_from_excel
+
+transactions = read_transactions_from_excel("data/transactions_excel.xlsx")
+print(f"Загружено {len(transactions)} транзакций")
+print(transactions[0])
+```
+
+### Зависимости
+
+Модуль использует стандартные `csv` и `pathlib`, а также сторонние
+библиотеки `pandas` и `openpyxl` (последняя — движок для чтения `.xlsx`).
+
+Установка:
+
+```bash
+pip install pandas openpyxl
+```
+
+При использовании Poetry:
+
+```bash
+poetry add pandas openpyxl
+```
+
+### Тесты
+
+Тесты модуля находятся в `tests/test_file_readers.py` и используют
+`unittest.mock` (`Mock`, `patch`), чтобы проверять поведение функций
+без чтения реальных файлов. Общие фикстуры — в `tests/conftest.py`.
+
+Запуск:
+
+```bash
+pytest tests/test_file_readers.py -v
+```
+
+### Структура
+
+- `src/file_readers.py` — функции чтения CSV и XLSX
+- `data/transactions.csv` — пример CSV-файла
+- `data/transactions_excel.xlsx` — пример XLSX-файла
+- `tests/test_file_readers.py` — тесты с моками
 
 ## Конвертация валют
 
@@ -179,4 +260,5 @@ pytest --cov=src --cov-report=html
 Тесты лежат в `tests/`, фикстуры — в `tests/conftest.py`.
 
 Покрытие: `src/masks.py`, `src/processing.py`, `src/widget.py`,
-`src/decorators.py`, `src/generators.py`, `src/utils.py`, `src/external_api.py`.
+`src/decorators.py`, `src/generators.py`, `src/utils.py`,
+`src/file_readers.py`, `src/external_api.py`.
