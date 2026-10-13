@@ -60,4 +60,3 @@ def get_mask_account(account_number: str | int) -> str:
 
     masks_logger.info("Номер счета успешно замаскирован: %s", masked)
     return masked
-
