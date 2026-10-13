@@ -242,3 +242,170 @@ def transactions():
             "description": "Перевод организации",
         },
     ]
+
+
+@pytest.fixture
+def sample_transactions():
+    """Тестовый набор транзакций для тестов сервисов."""
+    return [
+        {"id": 1, "description": "Перевод на карту Сбербанк", "amount": 5000},
+        {"id": 2, "description": "Оплата в Пятёрочке", "amount": 1500},
+        {"id": 3, "description": "Перевод на карту Тинькофф", "amount": 3000},
+        {"id": 4, "description": "Снятие наличных в банкомате", "amount": 10000},
+        {"id": 5, "description": "Оплата коммунальных услуг", "amount": 4500},
+        {"id": 6, "description": "Перевод другу", "amount": 2000},
+    ]
+
+
+@pytest.fixture
+def sample_transactions_without_description():
+    """Транзакции, часть из которых без ключа description."""
+    return [
+        {"id": 1, "amount": 100},
+        {"id": 2, "description": "Перевод", "amount": 200},
+        {"id": 3, "description": "Перевод другу", "amount": 300},
+    ]
+
+
+@pytest.fixture
+def sample_transactions_with_special_chars():
+    """Транзакции с regex-спецсимволами в описании."""
+    return [
+        {"id": 1, "description": "Перевод (внутренний)"},
+        {"id": 2, "description": "Перевод внешний"},
+        {"id": 3, "description": "Перевод 100.50 руб."},
+    ]
+
+
+@pytest.fixture
+def sample_categories():
+    """Базовый набор категорий."""
+    return ["Перевод", "Оплата", "Снятие", "Пополнение"]
+
+
+@pytest.fixture
+def raw_json_transactions():
+    """Сырые транзакции, как будто из JSON-файла (вложенная структура)."""
+    return [
+        {
+            "id": 1,
+            "state": "EXECUTED",
+            "date": "2019-12-08T22:46:21.935582",
+            "description": "Открытие вклада",
+            "to": "Счет 12345678901234567890",
+            "operationAmount": {
+                "amount": "40542",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB",
+                },
+            },
+        },
+        {
+            "id": 2,
+            "state": "EXECUTED",
+            "date": "2019-11-12T10:00:00.000000",
+            "description": "Перевод с карты на карту",
+            "from": "MasterCard 7158300734726758",
+            "to": "Visa Platinum 1293387699203456",
+            "operationAmount": {
+                "amount": "130",
+                "currency": {
+                    "name": "USD",
+                    "code": "USD",
+                },
+            },
+        },
+        {
+            "id": 3,
+            "state": "EXECUTED",
+            "date": "2018-07-18T15:00:00.000000",
+            "description": "Перевод организации",
+            "from": "Visa Platinum 74926581720",
+            "to": "Счет 123456789012340034",
+            "operationAmount": {
+                "amount": "8390",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB",
+                },
+            },
+        },
+        {
+            "id": 4,
+            "state": "CANCELED",
+            "date": "2018-06-03T10:00:00.000000",
+            "description": "Перевод со счета на счет",
+            "from": "Счет 111111111111112935",
+            "to": "Счет 222222222222224321",
+            "operationAmount": {
+                "amount": "8200",
+                "currency": {
+                    "name": "EUR",
+                    "code": "EUR",
+                },
+            },
+        },
+    ]
+
+
+@pytest.fixture
+def csv_file(tmp_path):
+    """Создаёт временный CSV-файл с транзакциями."""
+    file_path = tmp_path / "transactions.csv"
+    content = (
+        "id;state;date;description;from;to;amount;currency\n"
+        "1;EXECUTED;2019-12-08T22:46:21.935582;Открытие вклада;"
+        ";Счет 12345678901234567890;40542;RUB\n"
+        "2;EXECUTED;2019-11-12T10:00:00;Перевод с карты на карту;"
+        "MasterCard 7158300734726758;Visa Platinum 1293387699203456;"
+        "130;USD\n"
+    )
+    file_path.write_text(content, encoding="utf-8")
+    return str(file_path)
+
+
+@pytest.fixture
+def json_file(tmp_path):
+    """Создаёт временный JSON-файл с транзакциями."""
+    import json
+
+    file_path = tmp_path / "operations.json"
+    data = [
+        {
+            "id": 1,
+            "state": "EXECUTED",
+            "date": "2019-12-08T22:46:21.935582",
+            "description": "Открытие вклада",
+            "to": "Счет 12345678901234567890",
+            "amount": 40542,
+            "currency": "RUB",
+        },
+    ]
+    file_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    return str(file_path)
+
+
+@pytest.fixture
+def xlsx_file(tmp_path):
+    """Создаёт временный XLSX-файл с транзакциями."""
+    from openpyxl import Workbook
+
+    file_path = tmp_path / "transactions.xlsx"
+    wb = Workbook()
+    ws = wb.active
+    ws.append(["id", "state", "date", "description", "from", "to", "amount", "currency"])
+    ws.append(
+        [
+            1,
+            "EXECUTED",
+            "2019-12-08T22:46:21.935582",
+            "Открытие вклада",
+            None,
+            "Счет 12345678901234567890",
+            40542,
+            "RUB",
+        ]
+    )
+    wb.save(file_path)
+    return str(file_path)
