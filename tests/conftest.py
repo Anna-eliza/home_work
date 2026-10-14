@@ -322,7 +322,7 @@ def csv_file(tmp_path):
 
 @pytest.fixture
 def json_file(tmp_path):
-    """Создаёт временный JSON-файл с транзакциями."""
+    """Создаёт временный JSON-файл с транзакциями (вложенная структура)."""
     import json
 
     file_path = tmp_path / "operations.json"
@@ -333,8 +333,13 @@ def json_file(tmp_path):
             "date": "2019-12-08T22:46:21.935582",
             "description": "Открытие вклада",
             "to": "Счет 12345678901234567890",
-            "amount": 40542,
-            "currency": "RUB",
+            "operationAmount": {
+                "amount": "40542",
+                "currency": {
+                    "name": "руб.",
+                    "code": "RUB",
+                },
+            },
         },
     ]
     file_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")

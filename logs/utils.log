@@ -1,10 +1,10 @@
-2026-10-13 14:24:36 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
-2026-10-13 14:24:36 | utils | INFO | Успешно загружено 101 транзакций из C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
-2026-10-13 14:24:36 | utils | DEBUG | Попытка загрузки транзакций из файла: data/nope.json
-2026-10-13 14:24:36 | utils | ERROR | Файл не найден: data/nope.json
-2026-10-13 14:24:36 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpxuniqyx6.json
-2026-10-13 14:24:36 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmpxuniqyx6.json: Expecting value: line 1 column 1 (char 0)
-2026-10-13 14:24:36 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmp5xid0pv2.json
-2026-10-13 14:24:36 | utils | ERROR | Ожидался список транзакций в C:\Users\anna_\AppData\Local\Temp\tmp5xid0pv2.json, получено: dict
-2026-10-13 14:24:36 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpwvyrn47c.json
-2026-10-13 14:24:36 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmpwvyrn47c.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-10-14 11:33:06 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
+2026-10-14 11:33:06 | utils | INFO | Успешно загружено 101 транзакций из C:\Users\anna_\PycharmProjects\Python_Home_Work\data\operations.json
+2026-10-14 11:33:06 | utils | DEBUG | Попытка загрузки транзакций из файла: data/nope.json
+2026-10-14 11:33:06 | utils | ERROR | Файл не найден: data/nope.json
+2026-10-14 11:33:06 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpvu4t53ci.json
+2026-10-14 11:33:06 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmpvu4t53ci.json: Expecting value: line 1 column 1 (char 0)
+2026-10-14 11:33:06 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpjf2b9zf1.json
+2026-10-14 11:33:06 | utils | ERROR | Ожидался список транзакций в C:\Users\anna_\AppData\Local\Temp\tmpjf2b9zf1.json, получено: dict
+2026-10-14 11:33:06 | utils | DEBUG | Попытка загрузки транзакций из файла: C:\Users\anna_\AppData\Local\Temp\tmpzoqkjh0y.json
+2026-10-14 11:33:06 | utils | ERROR | Ошибка декодирования JSON в файле C:\Users\anna_\AppData\Local\Temp\tmpzoqkjh0y.json: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)

@@ -1,27 +1,31 @@
 import csv
+from pathlib import Path
 
 from src.generators import filter_by_currency
-from src.masks import get_mask_account, get_mask_card_number
 from src.processing import filter_by_state, sort_by_date
 from src.services import process_bank_search
 from src.utils import load_operations
+from src.widget import get_date, mask_account_card
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DATA_DIR = PROJECT_ROOT / "data"
+
+JSON_PATH = DATA_DIR / "operations.json"
+CSV_PATH = DATA_DIR / "transactions.csv"
+XLSX_PATH = DATA_DIR / "transactions.xlsx"
 
 
-def read_csv_file(file_path: str) -> list[dict]:
+def read_csv_file(file_path: str | Path) -> list[dict]:
     """Читает транзакции из CSV-файла."""
-    transactions = []
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f, delimiter=";")
-            for row in reader:
-                transactions.append(row)
+            return list(csv.DictReader(f, delimiter=";"))
     except FileNotFoundError:
         print(f"Файл не найден: {file_path}")
         return []
-    return transactions
 
 
-def read_xlsx_file(file_path: str) -> list[dict]:
+def read_xlsx_file(file_path: str | Path) -> list[dict]:
     """Читает транзакции из XLSX-файла."""
     try:
         from openpyxl import load_workbook
@@ -37,10 +41,7 @@ def read_xlsx_file(file_path: str) -> list[dict]:
 
     ws = wb.active
     headers = [cell.value for cell in ws[1]]
-    transactions = []
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        transactions.append(dict(zip(headers, row)))
-    return transactions
+    return [dict(zip(headers, row)) for row in ws.iter_rows(min_row=2, values_only=True)]
 
 
 def ask_yes_no(prompt: str) -> bool:
@@ -52,65 +53,6 @@ def ask_yes_no(prompt: str) -> bool:
         if answer in ("нет", "no", "n", "н"):
             return False
         print('Пожалуйста, введите "Да" или "Нет".')
-
-
-def _mask_account(value: str) -> str:
-    """Маскирует счёт: 'Счет 1234567890' → 'Счет **7890'."""
-    digits = "".join(ch for ch in value if ch.isdigit())
-    if not digits:
-        return value
-    return f"Счет **{digits[-4:]}"
-
-
-def _mask_card_with_name(card_name: str, card_number: str) -> str:
-    """Маскирует карту с именем платёжной системы."""
-    if not card_number.isdigit():
-        return f"{card_name} {card_number}"
-
-    try:
-        masked = get_mask_card_number(card_number)
-    except ValueError:
-        # Короткий или нестандартный номер — маскируем сами
-        if len(card_number) >= 4:
-            masked = f"{card_number[:2]}** **** {card_number[-4:]}"
-        elif len(card_number) >= 2:
-            masked = f"**{card_number[-2:]}"
-        else:
-            masked = f"**{card_number}"
-
-    return f"{card_name} {masked}"
-
-
-def mask_account_or_card(value: str) -> str:
-    """Маскирует номер счёта или карты."""
-    if not value:
-        return ""
-
-    if value.lower().startswith("счет"):
-        return _mask_account(value)
-
-    parts = value.rsplit(maxsplit=1)
-    if len(parts) == 2:
-        return _mask_card_with_name(parts[0], parts[1])
-
-    if value.isdigit():
-        try:
-            return get_mask_card_number(value)
-        except ValueError:
-            return value
-
-    return value
-
-
-def format_date(date_raw: str) -> str:
-    """Преобразует дату ISO в формат ДД.ММ.ГГГГ."""
-    if not date_raw:
-        return ""
-    date = date_raw[:10]
-    if "-" in date:
-        y, m, d = date.split("-")
-        return f"{d}.{m}.{y}"
-    return date
 
 
 def _get_amount_and_currency(transaction: dict) -> tuple:
@@ -132,7 +74,7 @@ def _get_amount_and_currency(transaction: dict) -> tuple:
 
 def print_transaction(transaction: dict) -> None:
     """Печатает одну транзакцию в читаемом виде."""
-    date = format_date(transaction.get("date", ""))
+    date = get_date(transaction.get("date", ""))
     description = transaction.get("description", "")
     from_acc = transaction.get("from", "")
     to_acc = transaction.get("to", "")
@@ -141,45 +83,42 @@ def print_transaction(transaction: dict) -> None:
     print(f"{date} {description}")
 
     if from_acc and to_acc:
-        print(f"{mask_account_or_card(from_acc)} -> " f"{mask_account_or_card(to_acc)}")
+        print(f"{mask_account_card(from_acc)} -> " f"{mask_account_card(to_acc)}")
     elif to_acc:
-        print(mask_account_or_card(to_acc))
+        print(mask_account_card(to_acc))
 
     currency_suffix = "руб." if currency == "RUB" else currency
     print(f"Сумма: {amount} {currency_suffix}\n")
 
 
-def _read_transactions_by_choice(choice: str) -> list[dict]:
-    """Возвращает транзакции в зависимости от выбора пользователя."""
+def _load_transactions(choice: str) -> list[dict]:
+    """Загружает транзакции из файла по выбору пользователя."""
     if choice == "1":
         print("Для обработки выбран JSON-файл.")
-        path = input("Введите путь к JSON-файлу: ").strip()
-        return load_operations(path)
+        return load_operations(JSON_PATH)
 
     if choice == "2":
         print("Для обработки выбран CSV-файл.")
-        path = input("Введите путь к CSV-файлу: ").strip()
-        return read_csv_file(path)
+        return read_csv_file(CSV_PATH)
 
     if choice == "3":
         print("Для обработки выбран XLSX-файл.")
-        path = input("Введите путь к XLSX-файлу: ").strip()
-        return read_xlsx_file(path)
+        return read_xlsx_file(XLSX_PATH)
 
     return []
 
 
 def _choose_transactions() -> list[dict]:
-    """Запрашивает у пользователя источник данных."""
+    """Запрашивает источник данных и загружает транзакции."""
     while True:
         choice = input().strip()
         if choice in ("1", "2", "3"):
-            return _read_transactions_by_choice(choice)
+            return _load_transactions(choice)
         print("Некорректный выбор. Введите 1, 2 или 3.")
 
 
 def _choose_status() -> str:
-    """Запрашивает у пользователя статус фильтрации."""
+    """Запрашивает статус фильтрации."""
     available = ["EXECUTED", "CANCELED", "PENDING"]
     while True:
         print("Введите статус, по которому необходимо выполнить " "фильтрацию.")
@@ -201,9 +140,9 @@ def _apply_sort(transactions: list[dict]) -> list[dict]:
     order = input("Отсортировать по возрастанию или по убыванию?\n").strip().lower()
 
     if order in ("по возрастанию", "возрастание", "asc"):
-        return list(sort_by_date(transactions, reverse=False))
+        return sort_by_date(transactions, reverse=False)
     if order in ("по убыванию", "убывание", "desc"):
-        return list(sort_by_date(transactions, reverse=True))
+        return sort_by_date(transactions, reverse=True)
 
     print("Некорректный ввод, сортировка не применена.")
     return transactions
@@ -216,7 +155,7 @@ def _apply_filters(transactions: list[dict]) -> list[dict]:
 
     if ask_yes_no("Отфильтровать список транзакций по определенному слову " "в описании? Да/Нет\n"):
         search = input("Введите слово для поиска: ").strip()
-        transactions = list(process_bank_search(transactions, search))
+        transactions = process_bank_search(transactions, search)
 
     return transactions
 
@@ -235,7 +174,7 @@ def main() -> None:
         return
 
     status = _choose_status()
-    transactions = list(filter_by_state(transactions, status))
+    transactions = filter_by_state(transactions, status)
 
     transactions = _apply_sort(transactions)
     transactions = _apply_filters(transactions)
@@ -254,4 +193,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
