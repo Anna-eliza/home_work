@@ -12,7 +12,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 JSON_PATH = DATA_DIR / "operations.json"
 CSV_PATH = DATA_DIR / "transactions.csv"
-XLSX_PATH = DATA_DIR / "transactions.xlsx"
+XLSX_PATH = DATA_DIR / "transactions_excel.xlsx"
 
 
 def read_csv_file(file_path: str | Path) -> list[dict]:
