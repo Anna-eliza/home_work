@@ -55,21 +55,29 @@ def ask_yes_no(prompt: str) -> bool:
         print('Пожалуйста, введите "Да" или "Нет".')
 
 
-def _get_amount_and_currency(transaction: dict) -> tuple:
+def _get_amount_and_currency(transaction: dict) -> tuple[str, str]:
     """Достаёт сумму и код валюты из транзакции."""
+
     amount = transaction.get("amount")
     currency = transaction.get("currency")
-    if amount is not None and currency is not None:
-        return amount, currency
 
-    op_amount = transaction.get("operationAmount", {})
-    if isinstance(op_amount, dict):
-        amount = op_amount.get("amount", "")
-        currency_obj = op_amount.get("currency", {})
-        currency = currency_obj.get("code", "") if isinstance(currency_obj, dict) else ""
-        return amount, currency
+    if not currency:
+        currency = transaction.get("currency_code", "")
 
-    return "", ""
+    if amount is None or not currency or amount == "":
+        op_amount = transaction.get("operationAmount", {})
+        if isinstance(op_amount, dict):
+            amount = op_amount.get("amount", "")
+            currency_obj = op_amount.get("currency", {})
+            if isinstance(currency_obj, dict):
+                currency = currency_obj.get("code", "")
+
+    if amount is None:
+        amount = ""
+    else:
+        amount = str(amount)
+
+    return amount, currency
 
 
 def print_transaction(transaction: dict) -> None:
@@ -78,17 +86,28 @@ def print_transaction(transaction: dict) -> None:
     description = transaction.get("description", "")
     from_acc = transaction.get("from", "")
     to_acc = transaction.get("to", "")
+
     amount, currency = _get_amount_and_currency(transaction)
 
     print(f"{date} {description}")
 
     if from_acc and to_acc:
-        print(f"{mask_account_card(from_acc)} -> " f"{mask_account_card(to_acc)}")
+        print(f"{mask_account_card(from_acc)} -> {mask_account_card(to_acc)}")
     elif to_acc:
         print(mask_account_card(to_acc))
 
-    currency_suffix = "руб." if currency == "RUB" else currency
-    print(f"Сумма: {amount} {currency_suffix}\n")
+    if currency == "RUB":
+        currency_suffix = "руб."
+    else:
+
+        currency_suffix = currency if currency else ""
+
+    if amount:
+        print(f"Сумма: {amount} {currency_suffix}".rstrip())
+    else:
+        print("Сумма: —")
+
+    print()
 
 
 def _load_transactions(choice: str) -> list[dict]:
@@ -121,8 +140,8 @@ def _choose_status() -> str:
     """Запрашивает статус фильтрации."""
     available = ["EXECUTED", "CANCELED", "PENDING"]
     while True:
-        print("Введите статус, по которому необходимо выполнить " "фильтрацию.")
-        print(f"Доступные для фильтровки статусы: " f'{", ".join(available)}')
+        print("Введите статус, по которому необходимо выполнить фильтрацию.")
+        print(f"Доступные для фильтровки статусы: {', '.join(available)}")
 
         status = input().strip().upper()
         if status in available:
@@ -153,7 +172,7 @@ def _apply_filters(transactions: list[dict]) -> list[dict]:
     if ask_yes_no("Выводить только рублевые транзакции? Да/Нет\n"):
         transactions = list(filter_by_currency(transactions, "RUB"))
 
-    if ask_yes_no("Отфильтровать список транзакций по определенному слову " "в описании? Да/Нет\n"):
+    if ask_yes_no("Отфильтровать список транзакций по определенному слову в описании? Да/Нет\n"):
         search = input("Введите слово для поиска: ").strip()
         transactions = process_bank_search(transactions, search)
 
@@ -162,7 +181,7 @@ def _apply_filters(transactions: list[dict]) -> list[dict]:
 
 def main() -> None:
     """Основная функция проекта: связывает всю логику вместе."""
-    print("Привет! Добро пожаловать в программу работы " "с банковскими транзакциями.")
+    print("Привет! Добро пожаловать в программу работы с банковскими транзакциями.")
     print("Выберите необходимый пункт меню:")
     print("1. Получить информацию о транзакциях из JSON-файла")
     print("2. Получить информацию о транзакциях из CSV-файла")
@@ -182,10 +201,10 @@ def main() -> None:
     print("Распечатываю итоговый список транзакций...")
 
     if not transactions:
-        print("Не найдено ни одной транзакции, подходящей под ваши " "условия фильтрации")
+        print("Не найдено ни одной транзакции, подходящей под ваши условия фильтрации")
         return
 
-    print(f"\nВсего банковских операций в выборке: " f"{len(transactions)}\n")
+    print(f"\nВсего банковских операций в выборке: {len(transactions)}\n")
 
     for transaction in transactions:
         print_transaction(transaction)
