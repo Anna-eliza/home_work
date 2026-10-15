@@ -1,4 +1,49 @@
+import csv
+
+import pandas as pd
 import pytest
+
+
+@pytest.fixture
+def sample_transactions():
+    """Эталонный список транзакций для сравнения."""
+    return [
+        {"id": "1", "amount": "100.50", "category": "Еда", "date": "2024-01-15"},
+        {"id": "2", "amount": "250.00", "category": "Транспорт", "date": "2024-01-16"},
+        {"id": "3", "amount": "75.20", "category": "Развлечения", "date": "2024-01-17"},
+    ]
+
+
+@pytest.fixture
+def csv_file(tmp_path, sample_transactions):
+    """Создаёт временный CSV-файл с тестовыми данными."""
+    file_path = tmp_path / "test_transactions.csv"
+    with open(file_path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=sample_transactions[0].keys())
+        writer.writeheader()
+        writer.writerows(sample_transactions)
+    return file_path
+
+
+@pytest.fixture
+def xlsx_file(tmp_path, sample_transactions):
+    """Создаёт временный XLSX-файл с тестовыми данными."""
+    file_path = tmp_path / "test_transactions.xlsx"
+    df = pd.DataFrame(sample_transactions)
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    return file_path
+
+
+@pytest.fixture
+def csv_file_path_str(csv_file):
+    """Путь к CSV в виде строки."""
+    return str(csv_file)
+
+
+@pytest.fixture
+def xlsx_file_path_str(xlsx_file):
+    """Путь к XLSX в виде строки."""
+    return str(xlsx_file)
 
 
 @pytest.fixture
