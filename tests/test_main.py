@@ -4,12 +4,11 @@ import pytest
 
 from src.main import (
     ask_yes_no,
-    format_date,
-    mask_account_or_card,
     print_transaction,
     read_csv_file,
     read_xlsx_file,
 )
+from src.widget import get_date, mask_account_card
 
 
 def test_read_csv_file_ok(csv_file):
@@ -85,48 +84,6 @@ def test_ask_yes_no_retry(capsys):
     assert captured.out.count("Пожалуйста, введите") == 2
 
 
-def test_mask_account_or_card_account():
-    """Маскировка счёта."""
-    result = mask_account_or_card("Счет 12345678901234567890")
-
-    assert result == "Счет **7890"
-
-
-def test_mask_account_or_card_account_lowercase():
-    """Маскировка счёта со строчной буквы."""
-    result = mask_account_or_card("счет 12345678901234567890")
-
-    assert result == "Счет **7890"
-
-
-def test_mask_account_or_card_card():
-    """Маскировка карты."""
-    result = mask_account_or_card("MasterCard 7158300734726758")
-
-    assert result == "MasterCard 7158 30** **** 6758"
-
-
-def test_mask_account_or_card_empty():
-    """Пустая строка → пустая строка."""
-    assert mask_account_or_card("") == ""
-
-
-def test_format_date_iso():
-    """ISO-дата → ДД.ММ.ГГГГ."""
-    result = format_date("2019-12-08T22:46:21.935582")
-    assert result == "08.12.2019"
-
-
-def test_format_date_empty():
-    """Пустая дата → пустая строка."""
-    assert format_date("") == ""
-
-
-def test_format_date_wrong_format():
-    """Строка без дефисов возвращается как есть."""
-    assert format_date("08.12.2019") == "08.12.2019"
-
-
 def test_print_transaction_full(capsys):
     """Печать полной транзакции со счётом и картой."""
     transaction = {
@@ -141,8 +98,8 @@ def test_print_transaction_full(capsys):
     captured = capsys.readouterr()
 
     assert "12.11.2019 Перевод с карты на карту" in captured.out
-    assert "MasterCard 7158 30** **** 6758" in captured.out
-    assert "Visa Platinum 1293 38** **** 3456" in captured.out
+    assert mask_account_card("MasterCard 7158300734726758") in captured.out
+    assert mask_account_card("Visa Platinum 1293387699203456") in captured.out
     assert "Сумма: 130 USD" in captured.out
 
 
@@ -159,7 +116,7 @@ def test_print_transaction_rub(capsys):
     captured = capsys.readouterr()
 
     assert "08.12.2019 Открытие вклада" in captured.out
-    assert "Счет **7890" in captured.out
+    assert mask_account_card("Счет 12345678901234567890") in captured.out
     assert "Сумма: 40542 руб." in captured.out
 
 
@@ -178,6 +135,38 @@ def test_print_transaction_only_to(capsys):
     assert "->" not in captured.out
 
 
+def test_print_transaction_nested_operation_amount(capsys):
+    """Поддержка вложенного формата operationAmount."""
+    transaction = {
+        "date": "2019-12-08T22:46:21",
+        "description": "Открытие вклада",
+        "to": "Счет 12345678901234567890",
+        "operationAmount": {
+            "amount": "40542",
+            "currency": {"name": "руб.", "code": "RUB"},
+        },
+    }
+    print_transaction(transaction)
+    captured = capsys.readouterr()
+
+    assert "Сумма: 40542 руб." in captured.out
+
+
+def test_print_transaction_no_accounts(capsys):
+    """Транзакция без from и to — печатается только дата, описание, сумма."""
+    transaction = {
+        "date": "2019-12-08T22:46:21",
+        "description": "Начисление процентов",
+        "amount": 100,
+        "currency": "RUB",
+    }
+    print_transaction(transaction)
+    captured = capsys.readouterr()
+
+    assert "Начисление процентов" in captured.out
+    assert "Сумма: 100 руб." in captured.out
+
+
 def _run_main(inputs, monkeypatch, capsys):
     """Хелпер: запускает main() с заданной последовательностью вводов."""
     from src.main import main
@@ -194,11 +183,10 @@ def test_main_json_full_flow(
     json_file,
     raw_json_transactions,
 ):
-    """Полный сценарий: JSON → EXECUTED → без сортировки →
-    без RUB → без поиска."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    """JSON → EXECUTED → без сортировки → без RUB → без поиска."""
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "EXECUTED", "нет", "нет", "нет"],
+            ["1", "EXECUTED", "нет", "нет", "нет"],
             monkeypatch,
             capsys,
         )
@@ -211,11 +199,12 @@ def test_main_json_full_flow(
 
 def test_main_csv_flow(monkeypatch, capsys, csv_file):
     """Полный сценарий через CSV."""
-    output = _run_main(
-        ["2", csv_file, "executed", "нет", "нет", "нет"],
-        monkeypatch,
-        capsys,
-    )
+    with patch("src.main.CSV_PATH", csv_file):
+        output = _run_main(
+            ["2", "executed", "нет", "нет", "нет"],
+            monkeypatch,
+            capsys,
+        )
 
     assert "Для обработки выбран CSV-файл." in output
     assert 'Операции отфильтрованы по статусу "EXECUTED"' in output
@@ -224,11 +213,12 @@ def test_main_csv_flow(monkeypatch, capsys, csv_file):
 
 def test_main_xlsx_flow(monkeypatch, capsys, xlsx_file):
     """Полный сценарий через XLSX."""
-    output = _run_main(
-        ["3", xlsx_file, "EXECUTED", "нет", "нет", "нет"],
-        monkeypatch,
-        capsys,
-    )
+    with patch("src.main.XLSX_PATH", xlsx_file):
+        output = _run_main(
+            ["3", "EXECUTED", "нет", "нет", "нет"],
+            monkeypatch,
+            capsys,
+        )
 
     assert "Для обработки выбран XLSX-файл." in output
     assert "Всего банковских операций в выборке: 1" in output
@@ -241,9 +231,9 @@ def test_main_invalid_status_then_valid(
     raw_json_transactions,
 ):
     """Неверный статус → повторный запрос."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "test", "EXECUTED", "нет", "нет", "нет"],
+            ["1", "test", "EXECUTED", "нет", "нет", "нет"],
             monkeypatch,
             capsys,
         )
@@ -259,9 +249,9 @@ def test_main_invalid_menu_choice(
     raw_json_transactions,
 ):
     """Неверный пункт меню → повторный запрос."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["9", "1", json_file, "EXECUTED", "нет", "нет", "нет"],
+            ["9", "1", "EXECUTED", "нет", "нет", "нет"],
             monkeypatch,
             capsys,
         )
@@ -276,9 +266,9 @@ def test_main_sort_ascending(
     raw_json_transactions,
 ):
     """Сортировка по возрастанию."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "EXECUTED", "да", "по возрастанию", "нет", "нет"],
+            ["1", "EXECUTED", "да", "по возрастанию", "нет", "нет"],
             monkeypatch,
             capsys,
         )
@@ -293,9 +283,9 @@ def test_main_sort_descending(
     raw_json_transactions,
 ):
     """Сортировка по убыванию."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "EXECUTED", "да", "по убыванию", "нет", "нет"],
+            ["1", "EXECUTED", "да", "по убыванию", "нет", "нет"],
             monkeypatch,
             capsys,
         )
@@ -310,9 +300,9 @@ def test_main_only_rub(
     raw_json_transactions,
 ):
     """Только рублёвые транзакции."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "EXECUTED", "нет", "да", "нет"],
+            ["1", "EXECUTED", "нет", "да", "нет"],
             monkeypatch,
             capsys,
         )
@@ -328,9 +318,9 @@ def test_main_search_by_word(
     raw_json_transactions,
 ):
     """Фильтр по слову в описании."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "EXECUTED", "нет", "нет", "да", "вклада"],
+            ["1", "EXECUTED", "нет", "нет", "да", "вклада"],
             monkeypatch,
             capsys,
         )
@@ -346,9 +336,9 @@ def test_main_empty_result(
     raw_json_transactions,
 ):
     """Пустая выборка → сообщение."""
-    with patch("src.main.load_operations", return_value=raw_json_transactions):
+    with patch("src.main.load_operations", return_value=raw_json_transactions), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", json_file, "EXECUTED", "нет", "нет", "да", "Ипотека"],
+            ["1", "EXECUTED", "нет", "нет", "да", "Ипотека"],
             monkeypatch,
             capsys,
         )
@@ -356,11 +346,11 @@ def test_main_empty_result(
     assert "Не найдено ни одной транзакции" in output
 
 
-def test_main_load_failed(monkeypatch, capsys):
+def test_main_load_failed(monkeypatch, capsys, json_file):
     """Не удалось загрузить транзакции."""
-    with patch("src.main.load_operations", return_value=[]):
+    with patch("src.main.load_operations", return_value=[]), patch("src.main.JSON_PATH", json_file):
         output = _run_main(
-            ["1", "missing.json"],
+            ["1"],
             monkeypatch,
             capsys,
         )
